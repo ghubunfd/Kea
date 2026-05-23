@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kea Wetter — Mörbisch am See</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  --type-mega: 152px;
+  --type-display: 88px;
+  --type-title: 56px;
+  --type-subtitle: 38px;
+  --type-body: 28px;
+  --type-small: 24px;
+  --type-micro: 16px;
+
+  --pad-frame: 56px;
+  --pad-card: 32px;
+  --gap-grid: 16px;
+  --gap-stack: 14px;
+
+  --bg: #f4f2ed;
+  --bg-card: #ffffff;
+  --ink: #161513;
+  --ink-2: #2c2a26;
+  --ink-3: #6e6a62;
+  --ink-4: #a8a39a;
+  --line: #e4e0d8;
+  --line-2: #d5d0c5;
+  --accent: oklch(58% 0.14 235);
+  --accent-2: oklch(64% 0.10 75);
+  --hot: oklch(62% 0.16 30);
+  --cool: oklch(58% 0.12 220);
+
+  --font-display: "Space Grotesk", "IBM Plex Sans", system-ui, sans-serif;
+  --font-text: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0b0a09;
+  font-family: var(--font-text);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  height: 100%;
+  overflow: hidden;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #0b0a09;
+}
+
+.stage-inner {
+  width: 1920px;
+  height: 1080px;
+  transform-origin: center center;
+}
+
+.slide {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  padding: var(--pad-frame);
+  box-sizing: border-box;
+  font-family: var(--font-text);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line-2);
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+.brand-mark {
+  width: 44px; height: 44px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  position: relative;
+  transform: translateY(8px);
+}
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  background: var(--ink);
+  border-radius: 50%;
+}
+.brand-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 40px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.brand-sub {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--ink-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.meta {
+  display: flex;
+  gap: 48px;
+  align-items: flex-end;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--ink-3);
+}
+.meta-item { display: flex; flex-direction: column; gap: 6px; }
+.meta-label {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-4);
+}
+.meta-val {
+  color: var(--ink);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.meta-val.coord { font-size: 18px; }
+
+.dashboard {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  grid-template-rows: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: var(--gap-grid);
+  margin-top: 20px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  padding: var(--pad-card);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+.card-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--type-subtitle);
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1;
+}
+.card-id {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--ink-4);
+  letter-spacing: 0.12em;
+}
+
+.card-wind {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+}
+.wind-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.wind-readout { display: flex; flex-direction: column; gap: 8px; }
+.wind-speed {
+  font-family: var(--font-mono);
+  font-size: var(--type-mega);
+  line-height: 0.9;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.wind-unit {
+  font-family: var(--font-mono);
+  font-size: 38px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+.wind-dir-text {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.wind-dir-deg {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.compass {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.wind-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-4);
+  margin-bottom: 6px;
+}
+.stat-val {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.stat-unit { color: var(--ink-3); font-size: 22px; margin-left: 4px; }
+
+.wind-gust-row {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gust-head {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.gust-axis {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-4);
+  letter-spacing: 0.08em;
+}
+
+.card-wetter { grid-column: 2 / span 3; grid-row: 1; }
+.wetter-body {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 36px;
+  align-items: stretch;
+}
+.wetter-now {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+.wetter-state {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.wetter-detail {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--ink-3);
+  margin-top: 6px;
+  line-height: 1.35;
+}
+.wetter-icons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+.weather-tile {
+  border: 1px solid var(--line);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 92px;
+  gap: 8px;
+}
+.weather-tile-label {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-4);
+}
+.weather-tile-val {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 30px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.weather-tile-val .u { font-size: 18px; color: var(--ink-3); margin-left: 3px; }
+
+.card-temp { grid-row: 2; }
+
+.temp-value {
+  font-family: var(--font-mono);
+  font-size: 108px;
+  line-height: 0.9;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  display: flex;
+  align-items: flex-start;
+}
+.temp-value .deg {
+  font-size: 48px;
+  color: var(--ink-3);
+  margin-top: 6px;
+  margin-left: 4px;
+}
+.temp-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 14px;
+}
+.temp-spark { margin-top: auto; padding-top: 18px; }
+.temp-range {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--ink-4);
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+.app-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-2);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--ink-4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.footer-grid { display: flex; gap: 36px; }
+.footer-grid b { color: var(--ink-3); font-weight: 500; }
+
+.deg-ticks { stroke: var(--ink-4); }
+
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+.live::before {
+  content: "";
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: oklch(60% 0.18 145);
+  box-shadow: 0 0 0 0 oklch(60% 0.18 145 / 0.45);
+  animation: pulse 1.6s ease-out infinite;
+}
+.live.offline { color: oklch(60% 0.16 30); }
+.live.offline::before {
+  background: oklch(60% 0.16 30);
+  animation: none;
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 oklch(60% 0.18 145 / 0.45); }
+  100% { box-shadow: 0 0 0 12px oklch(60% 0.18 145 / 0); }
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-inner" id="stage-inner">
+    <div class="slide">
+
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="brand-name">Kea Wetter</div>
+          <div class="brand-sub">Mörbisch am See · Neusiedler See</div>
+        </div>
+        <div class="meta">
+          <div class="meta-item">
+            <span class="meta-label">Position</span>
+            <span class="meta-val coord">47.7167° N · 16.6833° O</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Aktualisiert</span>
+            <span class="meta-val" id="meta-updated">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Status</span>
+            <span class="live" id="status-live">Verbinde …</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="dashboard">
+
+        <section class="card card-wind">
+          <div class="card-head">
+            <h2 class="card-title">Wind</h2>
+            <span class="card-id" id="card-id-wind">01 / —</span>
+          </div>
+
+          <div class="wind-body">
+            <div class="wind-readout">
+              <div class="wind-speed" id="wind-speed">—<span class="wind-unit">&nbsp;kn</span></div>
+              <div class="wind-dir-text" id="wind-dir-text">—</div>
+              <div class="wind-dir-deg" id="wind-dir-deg">—</div>
+            </div>
+
+            <div class="compass">
+              <svg viewBox="0 0 200 200" width="100%" height="100%">
+                <circle cx="100" cy="100" r="92" fill="none" stroke="#e4e0d8" stroke-width="1"/>
+                <circle cx="100" cy="100" r="78" fill="none" stroke="#e4e0d8" stroke-width="1"/>
+                <g class="deg-ticks" stroke-width="1">
+                  <g transform="translate(100 100)">
+                    <line x1="0" y1="-92" x2="0" y2="-86"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(15)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(30)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-88" transform="rotate(45)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(60)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(75)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-82" transform="rotate(90)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(105)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(120)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-88" transform="rotate(135)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(150)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(165)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-82" transform="rotate(180)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(195)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(210)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-88" transform="rotate(225)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(240)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(255)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-82" transform="rotate(270)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(285)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(300)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-88" transform="rotate(315)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(330)"/>
+                    <line x1="0" y1="-92" x2="0" y2="-86" transform="rotate(345)"/>
+                  </g>
+                </g>
+                <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#6e6a62" text-anchor="middle">
+                  <text x="100" y="20">N</text>
+                  <text x="182" y="103">O</text>
+                  <text x="100" y="188">S</text>
+                  <text x="18" y="103">W</text>
+                </g>
+                <g id="compass-arrow" transform="translate(100 100) rotate(0)" style="transition: transform 0.8s ease-out;">
+                  <line x1="0" y1="-70" x2="0" y2="62" stroke="oklch(58% 0.14 235)" stroke-width="3" stroke-linecap="round"/>
+                  <polygon points="0,72 -10,52 10,52" fill="oklch(58% 0.14 235)"/>
+                  <circle cx="0" cy="-70" r="6" fill="oklch(58% 0.14 235)"/>
+                </g>
+                <circle cx="100" cy="100" r="3" fill="#161513"/>
+                <text id="compass-deg" x="100" y="118" font-family="IBM Plex Mono, monospace" font-size="11" fill="#a8a39a" text-anchor="middle" letter-spacing="1">—</text>
+              </svg>
+            </div>
+          </div>
+
+          <div class="wind-stats">
+            <div>
+              <div class="stat-label">Böen</div>
+              <div class="stat-val" id="stat-gust">—<span class="stat-unit">kn</span></div>
+            </div>
+            <div>
+              <div class="stat-label">Mittel 1h</div>
+              <div class="stat-val" id="stat-mean">—<span class="stat-unit">kn</span></div>
+            </div>
+            <div>
+              <div class="stat-label">Beaufort</div>
+              <div class="stat-val" id="stat-beaufort">—<span class="stat-unit">bft</span></div>
+            </div>
+          </div>
+
+          <div class="wind-gust-row">
+            <div class="gust-head">
+              <span>Böenverlauf · letzte 6 h</span>
+              <span>kn</span>
+            </div>
+            <svg viewBox="0 0 600 90" width="100%" height="80" preserveAspectRatio="none">
+              <g stroke="#eeeae1" stroke-width="1">
+                <line x1="0" y1="20" x2="600" y2="20"/>
+                <line x1="0" y1="50" x2="600" y2="50"/>
+                <line x1="0" y1="80" x2="600" y2="80"/>
+              </g>
+              <path id="gust-mean" d="" stroke="#a8a39a" stroke-width="1.5" fill="none"/>
+              <g id="gust-bars" fill="oklch(58% 0.14 235)"></g>
+              <g id="gust-yaxis" font-family="IBM Plex Mono, monospace" font-size="9" fill="#a8a39a"></g>
+            </svg>
+            <div class="gust-axis" id="gust-axis">
+              <span>—</span><span>—</span><span>—</span><span>—</span><span>—</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card card-wetter">
+          <div class="card-head">
+            <h2 class="card-title">Wetter</h2>
+            <span class="card-id" id="card-id-wetter">02 / —</span>
+          </div>
+
+          <div class="wetter-body">
+            <div class="wetter-now">
+              <svg viewBox="0 0 220 140" width="100%" height="120" preserveAspectRatio="xMinYMid meet">
+                <circle cx="68" cy="58" r="32" fill="oklch(64% 0.10 75)"/>
+                <line x1="0" y1="120" x2="220" y2="120" stroke="#161513" stroke-width="2"/>
+                <rect x="110" y="56" width="96" height="36" fill="#161513"/>
+                <rect x="124" y="44" width="64" height="14" fill="#161513"/>
+                <g fill="#a8a39a">
+                  <circle cx="20" cy="132" r="1.5"/>
+                  <circle cx="40" cy="132" r="1.5"/>
+                  <circle cx="60" cy="132" r="1.5"/>
+                  <circle cx="80" cy="132" r="1.5"/>
+                  <circle cx="100" cy="132" r="1.5"/>
+                  <circle cx="120" cy="132" r="1.5"/>
+                  <circle cx="140" cy="132" r="1.5"/>
+                  <circle cx="160" cy="132" r="1.5"/>
+                  <circle cx="180" cy="132" r="1.5"/>
+                  <circle cx="200" cy="132" r="1.5"/>
+                </g>
+              </svg>
+              <div class="wetter-state" id="wetter-state">—</div>
+              <div class="wetter-detail" id="wetter-detail">—</div>
+            </div>
+
+            <div class="wetter-icons">
+              <div class="weather-tile">
+                <div class="weather-tile-label">Luftdruck</div>
+                <div class="weather-tile-val" id="tile-pressure">—<span class="u">hPa</span></div>
+              </div>
+              <div class="weather-tile">
+                <div class="weather-tile-label">Luftfeuchte</div>
+                <div class="weather-tile-val" id="tile-humidity">—<span class="u">%</span></div>
+              </div>
+              <div class="weather-tile">
+                <div class="weather-tile-label">UV-Index</div>
+                <div class="weather-tile-val" id="tile-uv">—<span class="u">/ 11</span></div>
+              </div>
+              <div class="weather-tile">
+                <div class="weather-tile-label">Sonnenauf.</div>
+                <div class="weather-tile-val" id="tile-sunrise">—</div>
+              </div>
+              <div class="weather-tile">
+                <div class="weather-tile-label">Sonnenunt.</div>
+                <div class="weather-tile-val" id="tile-sunset">—</div>
+              </div>
+              <div class="weather-tile">
+                <div class="weather-tile-label">Niederschlag 24h</div>
+                <div class="weather-tile-val" id="tile-precip">—<span class="u">mm</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card card-temp">
+          <div class="card-head">
+            <h2 class="card-title">Temperatur</h2>
+            <span class="card-id">03 / Luft</span>
+          </div>
+          <div class="temp-value" id="temp-air">—<span class="deg">°C</span></div>
+          <div class="temp-meta" id="temp-air-meta"><span>—</span><span>—</span></div>
+          <div class="temp-spark">
+            <svg viewBox="0 0 320 64" width="100%" height="64" preserveAspectRatio="none">
+              <g stroke="#eeeae1" stroke-width="1">
+                <line x1="0" y1="16" x2="320" y2="16"/>
+                <line x1="0" y1="32" x2="320" y2="32"/>
+                <line x1="0" y1="48" x2="320" y2="48"/>
+              </g>
+              <path id="spark-air" d="" fill="none" stroke="oklch(58% 0.14 235)" stroke-width="2.5" stroke-linecap="round"/>
+              <circle id="spark-air-dot" cx="-10" cy="-10" r="3" fill="oklch(58% 0.14 235)"/>
+            </svg>
+            <div class="temp-range">
+              <span>00 h</span><span>06</span><span>12</span><span>18</span><span>24</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card card-temp">
+          <div class="card-head">
+            <h2 class="card-title">Gefühlt</h2>
+            <span class="card-id">04 / windchill</span>
+          </div>
+          <div class="temp-value" id="temp-feel">—<span class="deg">°C</span></div>
+          <div class="temp-meta" id="temp-feel-meta"><span>—</span><span>Wind &amp; Feuchte</span></div>
+          <div class="temp-spark">
+            <svg viewBox="0 0 320 64" width="100%" height="64" preserveAspectRatio="none">
+              <g stroke="#eeeae1" stroke-width="1">
+                <line x1="0" y1="16" x2="320" y2="16"/>
+                <line x1="0" y1="32" x2="320" y2="32"/>
+                <line x1="0" y1="48" x2="320" y2="48"/>
+              </g>
+              <path id="spark-feel-bg" d="" fill="none" stroke="#d5d0c5" stroke-width="2" stroke-dasharray="3 3"/>
+              <path id="spark-feel" d="" fill="none" stroke="oklch(62% 0.16 30)" stroke-width="2.5" stroke-linecap="round"/>
+              <circle id="spark-feel-dot" cx="-10" cy="-10" r="3" fill="oklch(62% 0.16 30)"/>
+            </svg>
+            <div class="temp-range">
+              <span>00 h</span><span>06</span><span>12</span><span>18</span><span>24</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card card-temp">
+          <div class="card-head">
+            <h2 class="card-title">Wasser</h2>
+            <span class="card-id" id="card-id-water">05 / oberfläche</span>
+          </div>
+          <div class="temp-value" id="temp-water">—<span class="deg">°C</span></div>
+          <div class="temp-meta" id="temp-water-meta">
+            <span>Sensor 50 cm</span><span id="water-stamp">Tageswert</span>
+          </div>
+          <div class="temp-spark">
+            <svg viewBox="0 0 320 64" width="100%" height="64" preserveAspectRatio="none">
+              <g stroke="#eeeae1" stroke-width="1">
+                <line x1="0" y1="16" x2="320" y2="16"/>
+                <line x1="0" y1="32" x2="320" y2="32"/>
+                <line x1="0" y1="48" x2="320" y2="48"/>
+              </g>
+              <path d="M0,46 L46,44 L92,42 L138,38 L184,34 L230,30 L276,26 L320,24"
+                    fill="none" stroke="oklch(58% 0.12 220)" stroke-width="2.5" stroke-linecap="round"/>
+              <g fill="oklch(58% 0.12 220)">
+                <circle cx="0" cy="46" r="2.5"/>
+                <circle cx="46" cy="44" r="2.5"/>
+                <circle cx="92" cy="42" r="2.5"/>
+                <circle cx="138" cy="38" r="2.5"/>
+                <circle cx="184" cy="34" r="2.5"/>
+                <circle cx="230" cy="30" r="2.5"/>
+                <circle cx="276" cy="26" r="2.5"/>
+                <circle cx="320" cy="24" r="3.5"/>
+              </g>
+            </svg>
+            <div class="temp-range">
+              <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="app-footer">
+        <div class="footer-grid">
+          <span><b>QUELLEN</b> · Open-Meteo · See-Sensor Mörbisch</span>
+          <span><b>STATION</b> · MOE-04</span>
+          <span><b>BAROM. TREND</b> · <span id="baro-trend">—</span></span>
+        </div>
+        <div>KEA · BUILD 2026.05.23</div>
+      </footer>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Kea Wetter — Live-Daten via Open-Meteo
+   Position: Mörbisch am See (Burgenland, AT)
+   Refresh:  alle 5 Minuten
+   ============================================================ */
+
+const LAT = 47.7167;
+const LON = 16.6833;
+const REFRESH_MS = 5 * 60 * 1000;
+
+/* Wassertemperatur Neusiedler See — Tageswert.
+   Open-Meteo deckt keine Binnensee-Wassertemperaturen ab.
+   Hier per Datum aktualisieren (z. B. aus ehyd.gv.at oder
+   den See-Sensoren). */
+const WATER = {
+  tempC: 18,
+  stampDe: "23. Mai 2026",
+  trend7d: +1.2
+};
+
+const $ = id => document.getElementById(id);
+
+const DIR_LONG  = ["Nord","Nordost","Ost","Südost","Süd","Südwest","West","Nordwest"];
+const DIR_SHORT = ["N","NO","O","SO","S","SW","W","NW"];
+function dirIdx(deg) { return Math.round(((deg % 360 + 360) % 360) / 45) % 8; }
+
+function beaufort(kn) {
+  const t = [1, 3, 6, 10, 16, 21, 27, 33, 40, 47, 55, 63];
+  for (let i = 0; i < t.length; i++) if (kn <= t[i]) return i;
+  return 12;
+}
+
+function weatherDesc(code) {
+  if (code === 0) return ["Klar", "klar"];
+  if (code <= 2) return ["Heiter", "heiter bis wolkig"];
+  if (code === 3) return ["Bedeckt", "bedeckt"];
+  if (code <= 48) return ["Nebel", "nebel"];
+  if (code <= 57) return ["Nieselregen", "niesel"];
+  if (code <= 67) return ["Regen", "regen"];
+  if (code <= 77) return ["Schnee", "schnee"];
+  if (code <= 82) return ["Regenschauer", "schauer"];
+  if (code <= 86) return ["Schneeschauer", "schneeschauer"];
+  return ["Gewitter", "gewitter"];
+}
+
+function fmtTime(iso) {
+  if (!iso) return "—";
+  const t = iso.split("T")[1] || "";
+  return t.slice(0, 5);
+}
+function fmtDateTime(iso) {
+  if (!iso) return "—";
+  const [date, time] = iso.split("T");
+  const [y, m, d] = date.split("-");
+  const months = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  return `${parseInt(d, 10)}. ${months[parseInt(m, 10) - 1]} ${y} · ${(time || "").slice(0, 5)}`;
+}
+function comma(n, digits = 1) {
+  return n.toFixed(digits).replace(".", ",");
+}
+
+/* find the largest index whose ISO time string is <= ref */
+function findIndex(times, ref) {
+  if (!times || !times.length) return 0;
+  let best = 0;
+  for (let i = 0; i < times.length; i++) {
+    if (times[i] <= ref) best = i; else break;
+  }
+  return best;
+}
+
+function setStatus(state, label) {
+  const el = $("status-live");
+  el.classList.toggle("offline", state === "offline");
+  el.textContent = label;
+}
+
+let baroHistory = []; /* {t, p} - to compute trend */
+
+async function update() {
+  const url = "https://api.open-meteo.com/v1/forecast"
+    + "?latitude=" + LAT + "&longitude=" + LON
+    + "&current=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,"
+    +   "wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code,precipitation,"
+    +   "cloud_cover,visibility,uv_index,dew_point_2m"
+    + "&hourly=temperature_2m,apparent_temperature,pressure_msl"
+    + "&minutely_15=wind_gusts_10m,wind_speed_10m"
+    + "&daily=sunrise,sunset,precipitation_sum"
+    + "&timezone=Europe%2FVienna"
+    + "&wind_speed_unit=kn"
+    + "&forecast_days=2&past_days=1";
+
+  let d;
+  try {
+    const r = await fetch(url, { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    d = await r.json();
+  } catch (e) {
+    console.error("Open-Meteo:", e);
+    setStatus("offline", "Offline · Wiederverbinden …");
+    return;
+  }
+  setStatus("live", "Live · 5-min Intervall");
+  render(d);
+}
+
+function render(d) {
+  const c = d.current;
+  const ref = c.time; /* "YYYY-MM-DDTHH:MM" in Europe/Vienna */
+
+  /* Header */
+  $("meta-updated").textContent = fmtDateTime(ref);
+
+  /* === WIND === */
+  const windKn = c.wind_speed_10m;
+  const gustKn = c.wind_gusts_10m;
+  const dir = c.wind_direction_10m;
+  const di = dirIdx(dir);
+
+  $("wind-speed").innerHTML = `${Math.round(windKn)}<span class="wind-unit">&nbsp;kn</span>`;
+  $("wind-dir-text").textContent = DIR_LONG[di];
+  $("wind-dir-deg").textContent = `${Math.round(dir)}° · aktualisiert ${fmtTime(ref)}`;
+  $("card-id-wind").textContent = `01 / ${DIR_SHORT[di]} · ${Math.round(dir)}°`;
+
+  /* compass arrow points TO the direction the wind blows (dir + 180) */
+  const arrowDeg = (dir + 180) % 360;
+  $("compass-arrow").setAttribute("transform", `translate(100 100) rotate(${arrowDeg})`);
+  $("compass-deg").textContent = `${Math.round(dir)}°`;
+
+  /* wind stats */
+  const m15 = d.minutely_15;
+  const idx15 = findIndex(m15.time, ref);
+  let sum = 0, cnt = 0;
+  for (let i = Math.max(0, idx15 - 3); i <= idx15; i++) {
+    const v = m15.wind_speed_10m[i];
+    if (typeof v === "number") { sum += v; cnt++; }
+  }
+  const mean1h = cnt ? sum / cnt : windKn;
+  $("stat-gust").innerHTML = `${Math.round(gustKn)}<span class="stat-unit">kn</span>`;
+  $("stat-mean").innerHTML = `${Math.round(mean1h)}<span class="stat-unit">kn</span>`;
+  $("stat-beaufort").innerHTML = `${beaufort(windKn)}<span class="stat-unit">bft</span>`;
+
+  /* gust bars — last 6h × 4 / h = 24 bars */
+  const startIdx = Math.max(0, idx15 - 23);
+  const gusts = [];
+  const speeds = [];
+  const times = [];
+  for (let i = startIdx; i <= idx15; i++) {
+    gusts.push(m15.wind_gusts_10m[i] || 0);
+    speeds.push(m15.wind_speed_10m[i] || 0);
+    times.push(m15.time[i]);
+  }
+  while (gusts.length < 24) {
+    gusts.unshift(0); speeds.unshift(0); times.unshift(times[0] || ref);
+  }
+
+  const VB_W = 600, VB_H = 90;
+  const xLeft = 24, xRight = 600;
+  const yTop = 8, yBot = 82;
+  const usableW = xRight - xLeft;
+  const barW = usableW / gusts.length * 0.7;
+  const slotW = usableW / gusts.length;
+  const gMax = Math.max(...gusts, ...speeds, 10);
+  /* round gMax up to nice 5 */
+  const yScale = Math.ceil(gMax / 5) * 5;
+
+  const yOf = v => yBot - (v / yScale) * (yBot - yTop);
+
+  let barsHtml = "";
+  for (let i = 0; i < gusts.length; i++) {
+    const x = xLeft + i * slotW + (slotW - barW) / 2;
+    const y = yOf(gusts[i]);
+    const h = yBot - y;
+    barsHtml += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0, h).toFixed(1)}"/>`;
+  }
+  $("gust-bars").innerHTML = barsHtml;
+
+  const meanPath = speeds.map((v, i) => {
+    const x = xLeft + i * slotW + slotW / 2;
+    return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${yOf(v).toFixed(1)}`;
+  }).join(" ");
+  $("gust-mean").setAttribute("d", meanPath);
+
+  /* y-axis labels (top, mid, bottom) */
+  $("gust-yaxis").innerHTML =
+    `<text x="0" y="${(yTop + 6).toFixed(1)}">${yScale}</text>` +
+    `<text x="0" y="${((yTop + yBot) / 2 + 3).toFixed(1)}">${Math.round(yScale / 2)}</text>` +
+    `<text x="0" y="${(yBot - 2).toFixed(1)}">0</text>`;
+
+  /* gust axis: 5 timestamps across the 6h window */
+  const axisHtml = [0, 1, 2, 3, 4].map(k => {
+    const i = Math.round(k * (times.length - 1) / 4);
+    return `<span>${fmtTime(times[i])}</span>`;
+  }).join("");
+  $("gust-axis").innerHTML = axisHtml;
+
+  /* === WETTER === */
+  const [stateShort, stateLong] = weatherDesc(c.weather_code);
+  $("wetter-state").textContent = stateShort;
+  const cloud = Math.round(c.cloud_cover);
+  const vis = c.visibility != null ? Math.round(c.visibility / 1000) : null;
+  const rainPart = c.precipitation > 0
+    ? `Niederschlag ${comma(c.precipitation, 1)} mm/h`
+    : "keine Niederschläge erwartet";
+  const visPart = vis != null ? ` · Sicht ${vis} km` : "";
+  $("wetter-detail").textContent = `${cloud} % Bewölkung${visPart} · ${rainPart}`;
+  $("card-id-wetter").textContent = `02 / ${stateLong}`;
+
+  $("tile-pressure").innerHTML = `${Math.round(c.pressure_msl)}<span class="u">hPa</span>`;
+  $("tile-humidity").innerHTML = `${Math.round(c.relative_humidity_2m)}<span class="u">%</span>`;
+  $("tile-uv").innerHTML = `${Math.round(c.uv_index || 0)}<span class="u">/ 11</span>`;
+  $("tile-sunrise").textContent = fmtTime(d.daily.sunrise[0]);
+  $("tile-sunset").textContent = fmtTime(d.daily.sunset[0]);
+  $("tile-precip").innerHTML = `${comma(d.daily.precipitation_sum[0] || 0, 1)}<span class="u">mm</span>`;
+
+  /* Barometric trend — compare current pressure to 3h ago */
+  const h = d.hourly;
+  const hIdx = findIndex(h.time, ref);
+  const pNow = c.pressure_msl;
+  const p3h = h.pressure_msl[Math.max(0, hIdx - 3)];
+  const dp = pNow - p3h;
+  $("baro-trend").textContent = Math.abs(dp) < 0.5 ? "stabil"
+    : dp > 0 ? `steigend +${comma(dp, 1)} hPa/3h`
+    : `fallend ${comma(dp, 1)} hPa/3h`;
+
+  /* === TEMPERATUR & GEFÜHLT === */
+  const tAir = c.temperature_2m;
+  const tFeel = c.apparent_temperature;
+  $("temp-air").innerHTML = `${Math.round(tAir)}<span class="deg">°C</span>`;
+  $("temp-feel").innerHTML = `${Math.round(tFeel)}<span class="deg">°C</span>`;
+
+  const tPrev = h.temperature_2m[Math.max(0, hIdx - 1)];
+  const trend = tAir - tPrev;
+  const arrow = trend > 0.1 ? "↑" : trend < -0.1 ? "↓" : "→";
+  const dew = c.dew_point_2m != null ? `Taupunkt ${Math.round(c.dew_point_2m)}°` : "Taupunkt —";
+  $("temp-air-meta").innerHTML =
+    `<span>Trend ${arrow} ${trend >= 0 ? "+" : ""}${comma(trend, 1)}°/h</span>` +
+    `<span>${dew}</span>`;
+
+  const delta = tFeel - tAir;
+  $("temp-feel-meta").innerHTML =
+    `<span>Δ ${delta >= 0 ? "+" : ""}${comma(delta, 1)}° vs. Luft</span>` +
+    `<span>Wind &amp; Feuchte</span>`;
+
+  /* Sparklines: today 00:00 → next midnight (25 hourly points) */
+  const dayStart = ref.slice(0, 10) + "T00:00";
+  const startH = findIndex(h.time, dayStart);
+  const airDay = h.temperature_2m.slice(startH, startH + 25);
+  const feelDay = h.apparent_temperature.slice(startH, startH + 25);
+
+  const all = [...airDay, ...feelDay].filter(v => typeof v === "number");
+  let tMin = Math.min(...all) - 1;
+  let tMax = Math.max(...all) + 1;
+  if (tMax - tMin < 4) { tMax = tMin + 4; }
+  const yTemp = v => 56 - ((v - tMin) / (tMax - tMin)) * 48;
+  const xTemp = i => (i / (airDay.length - 1)) * 320;
+  const pathOf = vals => vals.map((v, i) =>
+    `${i === 0 ? "M" : "L"}${xTemp(i).toFixed(1)},${yTemp(v).toFixed(1)}`
+  ).join(" ");
+
+  $("spark-air").setAttribute("d", pathOf(airDay));
+  $("spark-feel-bg").setAttribute("d", pathOf(airDay));
+  $("spark-feel").setAttribute("d", pathOf(feelDay));
+
+  const nowHour = parseInt(ref.split("T")[1].slice(0, 2), 10);
+  const nowMin = parseInt(ref.split("T")[1].slice(3, 5), 10);
+  const hourFrac = nowHour + nowMin / 60;
+  const dotX = (hourFrac / 24) * 320;
+  const airHere = airDay[Math.min(24, Math.round(hourFrac))];
+  const feelHere = feelDay[Math.min(24, Math.round(hourFrac))];
+  if (typeof airHere === "number") {
+    $("spark-air-dot").setAttribute("cx", dotX.toFixed(1));
+    $("spark-air-dot").setAttribute("cy", yTemp(airHere).toFixed(1));
+  }
+  if (typeof feelHere === "number") {
+    $("spark-feel-dot").setAttribute("cx", dotX.toFixed(1));
+    $("spark-feel-dot").setAttribute("cy", yTemp(feelHere).toFixed(1));
+  }
+
+  /* === WASSER === (Tageskonstante) */
+  $("temp-water").innerHTML = `${Math.round(WATER.tempC)}<span class="deg">°C</span>`;
+  const tr = WATER.trend7d;
+  $("temp-water-meta").innerHTML =
+    `<span>Sensor 50 cm</span>` +
+    `<span>Δ ${tr >= 0 ? "+" : ""}${comma(tr, 1)}° / 7 T</span>`;
+  $("card-id-water").textContent = `05 / oberfläche · ${WATER.stampDe}`;
+}
+
+/* === Stage scaling === */
+(function () {
+  const inner = document.getElementById("stage-inner");
+  const W = 1920, H = 1080;
+  function fit() {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    inner.style.transform = "scale(" + s + ")";
+  }
+  fit();
+  window.addEventListener("resize", fit);
+})();
+
+/* === Kick off === */
+update();
+setInterval(update, REFRESH_MS);
+/* Refetch when tab becomes visible again */
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) update();
+});
+</script>
+
+</body>
+</html>
