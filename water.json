@@ -1,0 +1,10 @@
+{
+  "tempC": 21,
+  "stampIso": "2026-05-23",
+  "stampDe": "23. Mai 2026",
+  "trend7d": 0,
+  "history": [
+    { "date": "2026-05-23", "tempC": 21 }
+  ],
+  "source": "https://www.wassertemperatur.org/neusiedler-see/"
+}

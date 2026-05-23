@@ -681,21 +681,12 @@ html, body {
                 <line x1="0" y1="32" x2="320" y2="32"/>
                 <line x1="0" y1="48" x2="320" y2="48"/>
               </g>
-              <path d="M0,46 L46,44 L92,42 L138,38 L184,34 L230,30 L276,26 L320,24"
+              <path id="water-line" d="M0,32 L320,32"
                     fill="none" stroke="oklch(58% 0.12 220)" stroke-width="2.5" stroke-linecap="round"/>
-              <g fill="oklch(58% 0.12 220)">
-                <circle cx="0" cy="46" r="2.5"/>
-                <circle cx="46" cy="44" r="2.5"/>
-                <circle cx="92" cy="42" r="2.5"/>
-                <circle cx="138" cy="38" r="2.5"/>
-                <circle cx="184" cy="34" r="2.5"/>
-                <circle cx="230" cy="30" r="2.5"/>
-                <circle cx="276" cy="26" r="2.5"/>
-                <circle cx="320" cy="24" r="3.5"/>
-              </g>
+              <g id="water-dots" fill="oklch(58% 0.12 220)"></g>
             </svg>
-            <div class="temp-range">
-              <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+            <div class="temp-range" id="water-range">
+              <span>—</span><span>—</span><span>—</span><span>—</span><span>—</span><span>—</span><span>—</span>
             </div>
           </div>
         </section>
@@ -726,15 +717,31 @@ const LAT = 47.7167;
 const LON = 16.6833;
 const REFRESH_MS = 5 * 60 * 1000;
 
-/* Wassertemperatur Neusiedler See — Tageswert.
-   Open-Meteo deckt keine Binnensee-Wassertemperaturen ab.
-   Hier per Datum aktualisieren (z. B. aus ehyd.gv.at oder
-   den See-Sensoren). */
-const WATER = {
+/* Wassertemperatur Neusiedler See — täglich aktualisiert via
+   .github/workflows/water-temp.yml → schreibt water.json.
+   Open-Meteo deckt keine Binnensee-Wassertemperaturen ab. */
+let WATER = {
   tempC: 18,
-  stampDe: "23. Mai 2026",
-  trend7d: +1.2
+  stampDe: "—",
+  trend7d: 0,
+  history: []
 };
+
+const DAYS_DE = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+async function loadWater() {
+  try {
+    const r = await fetch("water.json", { cache: "no-store" });
+    if (!r.ok) return;
+    const j = await r.json();
+    if (typeof j.tempC === "number") WATER.tempC = j.tempC;
+    if (typeof j.stampDe === "string") WATER.stampDe = j.stampDe;
+    if (typeof j.trend7d === "number") WATER.trend7d = j.trend7d;
+    if (Array.isArray(j.history)) WATER.history = j.history;
+  } catch (e) {
+    console.error("water.json:", e);
+  }
+}
 
 const $ = id => document.getElementById(id);
 
@@ -995,13 +1002,42 @@ function render(d) {
     $("spark-feel-dot").setAttribute("cy", yTemp(feelHere).toFixed(1));
   }
 
-  /* === WASSER === (Tageskonstante) */
+  renderWater();
+}
+
+function renderWater() {
   $("temp-water").innerHTML = `${Math.round(WATER.tempC)}<span class="deg">°C</span>`;
   const tr = WATER.trend7d;
   $("temp-water-meta").innerHTML =
     `<span>Sensor 50 cm</span>` +
     `<span>Δ ${tr >= 0 ? "+" : ""}${comma(tr, 1)}° / 7 T</span>`;
   $("card-id-water").textContent = `05 / oberfläche · ${WATER.stampDe}`;
+
+  /* Sparkline & day labels: last 7 history entries (oldest → newest). */
+  const hist = (WATER.history || []).slice(-7);
+  if (hist.length < 2) return;
+  const vals = hist.map(h => h.tempC);
+  let mn = Math.min(...vals) - 0.5;
+  let mx = Math.max(...vals) + 0.5;
+  if (mx - mn < 2) { const c = (mn + mx) / 2; mn = c - 1; mx = c + 1; }
+  const xAt = i => (i / (hist.length - 1)) * 320;
+  const yAt = v => 52 - ((v - mn) / (mx - mn)) * 40;
+
+  const d = vals.map((v, i) =>
+    `${i === 0 ? "M" : "L"}${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`
+  ).join(" ");
+  $("water-line").setAttribute("d", d);
+
+  $("water-dots").innerHTML = vals.map((v, i) => {
+    const r = i === vals.length - 1 ? 3.5 : 2.5;
+    return `<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(1)}" r="${r}"/>`;
+  }).join("");
+
+  const labels = hist.map(h => {
+    const [y, m, d] = h.date.split("-").map(Number);
+    return DAYS_DE[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+  });
+  $("water-range").innerHTML = labels.map(l => `<span>${l}</span>`).join("");
 }
 
 /* === Stage scaling === */
@@ -1017,11 +1053,18 @@ function render(d) {
 })();
 
 /* === Kick off === */
-update();
+(async () => {
+  await loadWater();
+  update();
+})();
 setInterval(update, REFRESH_MS);
+/* Refresh water once an hour as a cheap way to pick up the daily update. */
+setInterval(() => loadWater().then(renderWater), 60 * 60 * 1000);
 /* Refetch when tab becomes visible again */
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) update();
+  if (!document.hidden) {
+    loadWater().then(() => update());
+  }
 });
 </script>
 
