@@ -80,7 +80,6 @@ html, body {
   overflow: hidden;
 }
 
-/* ============ HEADER ============ */
 .app-header {
   display: flex;
   justify-content: space-between;
@@ -147,7 +146,6 @@ html, body {
 }
 .meta-val.coord { font-size: 18px; }
 
-/* ============ MAIN GRID ============ */
 .dashboard {
   flex: 1;
   min-height: 0;
@@ -187,12 +185,11 @@ html, body {
   letter-spacing: 0.12em;
 }
 
-/* Wind card spans 2 rows on the left */
 .card-wind {
   grid-row: 1 / span 2;
   grid-column: 1;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto;
 }
 .wind-body {
   display: grid;
@@ -288,7 +285,6 @@ html, body {
   letter-spacing: 0.08em;
 }
 
-/* Wetter card top-right */
 .card-wetter { grid-column: 2 / span 3; grid-row: 1; }
 .wetter-body {
   display: grid;
@@ -347,7 +343,6 @@ html, body {
 }
 .weather-tile-val .u { font-size: 18px; color: var(--ink-3); margin-left: 3px; }
 
-/* Temperature cards row 2 */
 .card-temp { grid-row: 2; }
 
 .temp-value {
@@ -389,7 +384,6 @@ html, body {
   letter-spacing: 0.06em;
 }
 
-/* ============ FOOTER ============ */
 .app-footer {
   margin-top: 18px;
   padding-top: 14px;
@@ -426,6 +420,11 @@ html, body {
   box-shadow: 0 0 0 0 oklch(60% 0.18 145 / 0.45);
   animation: pulse 1.6s ease-out infinite;
 }
+.live.offline { color: oklch(60% 0.16 30); }
+.live.offline::before {
+  background: oklch(60% 0.16 30);
+  animation: none;
+}
 @keyframes pulse {
   0%   { box-shadow: 0 0 0 0 oklch(60% 0.18 145 / 0.45); }
   100% { box-shadow: 0 0 0 12px oklch(60% 0.18 145 / 0); }
@@ -451,11 +450,11 @@ html, body {
           </div>
           <div class="meta-item">
             <span class="meta-label">Aktualisiert</span>
-            <span class="meta-val">23. Mai 2026 · 14:32</span>
+            <span class="meta-val" id="meta-updated">—</span>
           </div>
           <div class="meta-item">
             <span class="meta-label">Status</span>
-            <span class="live">Live · 5-min Intervall</span>
+            <span class="live" id="status-live">Verbinde …</span>
           </div>
         </div>
       </header>
@@ -465,14 +464,14 @@ html, body {
         <section class="card card-wind">
           <div class="card-head">
             <h2 class="card-title">Wind</h2>
-            <span class="card-id">01 / NW · 315°</span>
+            <span class="card-id" id="card-id-wind">01 / —</span>
           </div>
 
           <div class="wind-body">
             <div class="wind-readout">
-              <div class="wind-speed">14<span class="wind-unit">&nbsp;kn</span></div>
-              <div class="wind-dir-text">Nordwest</div>
-              <div class="wind-dir-deg">315° · konstant seit 11:40</div>
+              <div class="wind-speed" id="wind-speed">—<span class="wind-unit">&nbsp;kn</span></div>
+              <div class="wind-dir-text" id="wind-dir-text">—</div>
+              <div class="wind-dir-deg" id="wind-dir-deg">—</div>
             </div>
 
             <div class="compass">
@@ -513,13 +512,13 @@ html, body {
                   <text x="100" y="188">S</text>
                   <text x="18" y="103">W</text>
                 </g>
-                <g transform="translate(100 100) rotate(135)">
+                <g id="compass-arrow" transform="translate(100 100) rotate(0)" style="transition: transform 0.8s ease-out;">
                   <line x1="0" y1="-70" x2="0" y2="62" stroke="oklch(58% 0.14 235)" stroke-width="3" stroke-linecap="round"/>
                   <polygon points="0,72 -10,52 10,52" fill="oklch(58% 0.14 235)"/>
                   <circle cx="0" cy="-70" r="6" fill="oklch(58% 0.14 235)"/>
                 </g>
                 <circle cx="100" cy="100" r="3" fill="#161513"/>
-                <text x="100" y="118" font-family="IBM Plex Mono, monospace" font-size="11" fill="#a8a39a" text-anchor="middle" letter-spacing="1">315°</text>
+                <text id="compass-deg" x="100" y="118" font-family="IBM Plex Mono, monospace" font-size="11" fill="#a8a39a" text-anchor="middle" letter-spacing="1">—</text>
               </svg>
             </div>
           </div>
@@ -527,15 +526,15 @@ html, body {
           <div class="wind-stats">
             <div>
               <div class="stat-label">Böen</div>
-              <div class="stat-val">22<span class="stat-unit">kn</span></div>
+              <div class="stat-val" id="stat-gust">—<span class="stat-unit">kn</span></div>
             </div>
             <div>
               <div class="stat-label">Mittel 1h</div>
-              <div class="stat-val">12<span class="stat-unit">kn</span></div>
+              <div class="stat-val" id="stat-mean">—<span class="stat-unit">kn</span></div>
             </div>
             <div>
               <div class="stat-label">Beaufort</div>
-              <div class="stat-val">4<span class="stat-unit">bft</span></div>
+              <div class="stat-val" id="stat-beaufort">—<span class="stat-unit">bft</span></div>
             </div>
           </div>
 
@@ -550,48 +549,12 @@ html, body {
                 <line x1="0" y1="50" x2="600" y2="50"/>
                 <line x1="0" y1="80" x2="600" y2="80"/>
               </g>
-              <path d="M 0 56 L 30 54 L 60 55 L 90 52 L 120 50 L 150 51 L 180 48 L 210 49 L 240 46 L 270 47 L 300 45 L 330 44 L 360 43 L 390 42 L 420 41 L 450 40 L 480 41 L 510 39 L 540 40 L 570 38 L 600 39"
-                    stroke="#a8a39a" stroke-width="1.5" fill="none"/>
-              <g fill="oklch(58% 0.14 235)">
-                <rect x="2"   y="48" width="14" height="32"/>
-                <rect x="22"  y="44" width="14" height="36"/>
-                <rect x="42"  y="40" width="14" height="40"/>
-                <rect x="62"  y="38" width="14" height="42"/>
-                <rect x="82"  y="36" width="14" height="44"/>
-                <rect x="102" y="34" width="14" height="46"/>
-                <rect x="122" y="32" width="14" height="48"/>
-                <rect x="142" y="30" width="14" height="50"/>
-                <rect x="162" y="28" width="14" height="52"/>
-                <rect x="182" y="26" width="14" height="54"/>
-                <rect x="202" y="24" width="14" height="56"/>
-                <rect x="222" y="22" width="14" height="58"/>
-                <rect x="242" y="24" width="14" height="56"/>
-                <rect x="262" y="20" width="14" height="60"/>
-                <rect x="282" y="18" width="14" height="62"/>
-                <rect x="302" y="22" width="14" height="58"/>
-                <rect x="322" y="18" width="14" height="62"/>
-                <rect x="342" y="14" width="14" height="66"/>
-                <rect x="362" y="16" width="14" height="64"/>
-                <rect x="382" y="20" width="14" height="60"/>
-                <rect x="402" y="22" width="14" height="58"/>
-                <rect x="422" y="18" width="14" height="62"/>
-                <rect x="442" y="14" width="14" height="66"/>
-                <rect x="462" y="12" width="14" height="68"/>
-                <rect x="482" y="16" width="14" height="64"/>
-                <rect x="502" y="18" width="14" height="62"/>
-                <rect x="522" y="14" width="14" height="66"/>
-                <rect x="542" y="10" width="14" height="70"/>
-                <rect x="562" y="12" width="14" height="68"/>
-                <rect x="582" y="14" width="14" height="66"/>
-              </g>
-              <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#a8a39a">
-                <text x="0" y="14">25</text>
-                <text x="0" y="44">15</text>
-                <text x="0" y="74">5</text>
-              </g>
+              <path id="gust-mean" d="" stroke="#a8a39a" stroke-width="1.5" fill="none"/>
+              <g id="gust-bars" fill="oklch(58% 0.14 235)"></g>
+              <g id="gust-yaxis" font-family="IBM Plex Mono, monospace" font-size="9" fill="#a8a39a"></g>
             </svg>
-            <div class="gust-axis">
-              <span>08:30</span><span>10:00</span><span>11:30</span><span>13:00</span><span>14:30</span>
+            <div class="gust-axis" id="gust-axis">
+              <span>—</span><span>—</span><span>—</span><span>—</span><span>—</span>
             </div>
           </div>
         </section>
@@ -599,7 +562,7 @@ html, body {
         <section class="card card-wetter">
           <div class="card-head">
             <h2 class="card-title">Wetter</h2>
-            <span class="card-id">02 / heiter bis wolkig</span>
+            <span class="card-id" id="card-id-wetter">02 / —</span>
           </div>
 
           <div class="wetter-body">
@@ -622,34 +585,34 @@ html, body {
                   <circle cx="200" cy="132" r="1.5"/>
                 </g>
               </svg>
-              <div class="wetter-state">Heiter</div>
-              <div class="wetter-detail">38 % Bewölkung · Sicht 24 km · keine Niederschläge erwartet</div>
+              <div class="wetter-state" id="wetter-state">—</div>
+              <div class="wetter-detail" id="wetter-detail">—</div>
             </div>
 
             <div class="wetter-icons">
               <div class="weather-tile">
                 <div class="weather-tile-label">Luftdruck</div>
-                <div class="weather-tile-val">1018<span class="u">hPa</span></div>
+                <div class="weather-tile-val" id="tile-pressure">—<span class="u">hPa</span></div>
               </div>
               <div class="weather-tile">
                 <div class="weather-tile-label">Luftfeuchte</div>
-                <div class="weather-tile-val">54<span class="u">%</span></div>
+                <div class="weather-tile-val" id="tile-humidity">—<span class="u">%</span></div>
               </div>
               <div class="weather-tile">
                 <div class="weather-tile-label">UV-Index</div>
-                <div class="weather-tile-val">6<span class="u">/ 11</span></div>
+                <div class="weather-tile-val" id="tile-uv">—<span class="u">/ 11</span></div>
               </div>
               <div class="weather-tile">
                 <div class="weather-tile-label">Sonnenauf.</div>
-                <div class="weather-tile-val">05:18</div>
+                <div class="weather-tile-val" id="tile-sunrise">—</div>
               </div>
               <div class="weather-tile">
                 <div class="weather-tile-label">Sonnenunt.</div>
-                <div class="weather-tile-val">20:36</div>
+                <div class="weather-tile-val" id="tile-sunset">—</div>
               </div>
               <div class="weather-tile">
                 <div class="weather-tile-label">Niederschlag 24h</div>
-                <div class="weather-tile-val">0,2<span class="u">mm</span></div>
+                <div class="weather-tile-val" id="tile-precip">—<span class="u">mm</span></div>
               </div>
             </div>
           </div>
@@ -660,11 +623,8 @@ html, body {
             <h2 class="card-title">Temperatur</h2>
             <span class="card-id">03 / Luft</span>
           </div>
-          <div class="temp-value">23<span class="deg">°C</span></div>
-          <div class="temp-meta">
-            <span>Trend &uarr; +0,4°/h</span>
-            <span>Taupunkt 12°</span>
-          </div>
+          <div class="temp-value" id="temp-air">—<span class="deg">°C</span></div>
+          <div class="temp-meta" id="temp-air-meta"><span>—</span><span>—</span></div>
           <div class="temp-spark">
             <svg viewBox="0 0 320 64" width="100%" height="64" preserveAspectRatio="none">
               <g stroke="#eeeae1" stroke-width="1">
@@ -672,9 +632,8 @@ html, body {
                 <line x1="0" y1="32" x2="320" y2="32"/>
                 <line x1="0" y1="48" x2="320" y2="48"/>
               </g>
-              <path d="M0,50 L20,48 L40,46 L60,42 L80,38 L100,34 L120,30 L140,26 L160,22 L180,18 L200,16 L220,14 L240,12 L260,14 L280,16 L300,18 L320,20"
-                    fill="none" stroke="oklch(58% 0.14 235)" stroke-width="2.5" stroke-linecap="round"/>
-              <circle cx="240" cy="12" r="3" fill="oklch(58% 0.14 235)"/>
+              <path id="spark-air" d="" fill="none" stroke="oklch(58% 0.14 235)" stroke-width="2.5" stroke-linecap="round"/>
+              <circle id="spark-air-dot" cx="-10" cy="-10" r="3" fill="oklch(58% 0.14 235)"/>
             </svg>
             <div class="temp-range">
               <span>00 h</span><span>06</span><span>12</span><span>18</span><span>24</span>
@@ -687,11 +646,8 @@ html, body {
             <h2 class="card-title">Gefühlt</h2>
             <span class="card-id">04 / windchill</span>
           </div>
-          <div class="temp-value">21<span class="deg">°C</span></div>
-          <div class="temp-meta">
-            <span>&Delta; &minus;2° vs. Luft</span>
-            <span>Wind &amp; Feuchte</span>
-          </div>
+          <div class="temp-value" id="temp-feel">—<span class="deg">°C</span></div>
+          <div class="temp-meta" id="temp-feel-meta"><span>—</span><span>Wind &amp; Feuchte</span></div>
           <div class="temp-spark">
             <svg viewBox="0 0 320 64" width="100%" height="64" preserveAspectRatio="none">
               <g stroke="#eeeae1" stroke-width="1">
@@ -699,11 +655,9 @@ html, body {
                 <line x1="0" y1="32" x2="320" y2="32"/>
                 <line x1="0" y1="48" x2="320" y2="48"/>
               </g>
-              <path d="M0,50 L20,48 L40,46 L60,42 L80,38 L100,34 L120,30 L140,26 L160,22 L180,18 L200,16 L220,14 L240,12 L260,14 L280,16 L300,18 L320,20"
-                    fill="none" stroke="#d5d0c5" stroke-width="2" stroke-dasharray="3 3"/>
-              <path d="M0,54 L20,52 L40,50 L60,48 L80,44 L100,40 L120,36 L140,32 L160,28 L180,24 L200,22 L220,20 L240,18 L260,20 L280,22 L300,24 L320,26"
-                    fill="none" stroke="oklch(62% 0.16 30)" stroke-width="2.5" stroke-linecap="round"/>
-              <circle cx="240" cy="18" r="3" fill="oklch(62% 0.16 30)"/>
+              <path id="spark-feel-bg" d="" fill="none" stroke="#d5d0c5" stroke-width="2" stroke-dasharray="3 3"/>
+              <path id="spark-feel" d="" fill="none" stroke="oklch(62% 0.16 30)" stroke-width="2.5" stroke-linecap="round"/>
+              <circle id="spark-feel-dot" cx="-10" cy="-10" r="3" fill="oklch(62% 0.16 30)"/>
             </svg>
             <div class="temp-range">
               <span>00 h</span><span>06</span><span>12</span><span>18</span><span>24</span>
@@ -714,12 +668,11 @@ html, body {
         <section class="card card-temp">
           <div class="card-head">
             <h2 class="card-title">Wasser</h2>
-            <span class="card-id">05 / oberfläche</span>
+            <span class="card-id" id="card-id-water">05 / oberfläche</span>
           </div>
-          <div class="temp-value">18<span class="deg">°C</span></div>
-          <div class="temp-meta">
-            <span>Sensor 50 cm</span>
-            <span>&Delta; +1,2° / 7 T</span>
+          <div class="temp-value" id="temp-water">—<span class="deg">°C</span></div>
+          <div class="temp-meta" id="temp-water-meta">
+            <span>Sensor 50 cm</span><span id="water-stamp">Tageswert</span>
           </div>
           <div class="temp-spark">
             <svg viewBox="0 0 320 64" width="100%" height="64" preserveAspectRatio="none">
@@ -751,9 +704,9 @@ html, body {
 
       <footer class="app-footer">
         <div class="footer-grid">
-          <span><b>QUELLEN</b> · ZAMG · GeoSphere AT · See-Sensor Mörbisch</span>
+          <span><b>QUELLEN</b> · Open-Meteo · See-Sensor Mörbisch</span>
           <span><b>STATION</b> · MOE-04</span>
-          <span><b>BAROM. TREND</b> · stabil</span>
+          <span><b>BAROM. TREND</b> · <span id="baro-trend">—</span></span>
         </div>
         <div>KEA · BUILD 2026.05.23</div>
       </footer>
@@ -763,6 +716,295 @@ html, body {
 </div>
 
 <script>
+/* ============================================================
+   Kea Wetter — Live-Daten via Open-Meteo
+   Position: Mörbisch am See (Burgenland, AT)
+   Refresh:  alle 5 Minuten
+   ============================================================ */
+
+const LAT = 47.7167;
+const LON = 16.6833;
+const REFRESH_MS = 5 * 60 * 1000;
+
+/* Wassertemperatur Neusiedler See — Tageswert.
+   Open-Meteo deckt keine Binnensee-Wassertemperaturen ab.
+   Hier per Datum aktualisieren (z. B. aus ehyd.gv.at oder
+   den See-Sensoren). */
+const WATER = {
+  tempC: 18,
+  stampDe: "23. Mai 2026",
+  trend7d: +1.2
+};
+
+const $ = id => document.getElementById(id);
+
+const DIR_LONG  = ["Nord","Nordost","Ost","Südost","Süd","Südwest","West","Nordwest"];
+const DIR_SHORT = ["N","NO","O","SO","S","SW","W","NW"];
+function dirIdx(deg) { return Math.round(((deg % 360 + 360) % 360) / 45) % 8; }
+
+function beaufort(kn) {
+  const t = [1, 3, 6, 10, 16, 21, 27, 33, 40, 47, 55, 63];
+  for (let i = 0; i < t.length; i++) if (kn <= t[i]) return i;
+  return 12;
+}
+
+function weatherDesc(code) {
+  if (code === 0) return ["Klar", "klar"];
+  if (code <= 2) return ["Heiter", "heiter bis wolkig"];
+  if (code === 3) return ["Bedeckt", "bedeckt"];
+  if (code <= 48) return ["Nebel", "nebel"];
+  if (code <= 57) return ["Nieselregen", "niesel"];
+  if (code <= 67) return ["Regen", "regen"];
+  if (code <= 77) return ["Schnee", "schnee"];
+  if (code <= 82) return ["Regenschauer", "schauer"];
+  if (code <= 86) return ["Schneeschauer", "schneeschauer"];
+  return ["Gewitter", "gewitter"];
+}
+
+function fmtTime(iso) {
+  if (!iso) return "—";
+  const t = iso.split("T")[1] || "";
+  return t.slice(0, 5);
+}
+function fmtDateTime(iso) {
+  if (!iso) return "—";
+  const [date, time] = iso.split("T");
+  const [y, m, d] = date.split("-");
+  const months = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  return `${parseInt(d, 10)}. ${months[parseInt(m, 10) - 1]} ${y} · ${(time || "").slice(0, 5)}`;
+}
+function comma(n, digits = 1) {
+  return n.toFixed(digits).replace(".", ",");
+}
+
+/* find the largest index whose ISO time string is <= ref */
+function findIndex(times, ref) {
+  if (!times || !times.length) return 0;
+  let best = 0;
+  for (let i = 0; i < times.length; i++) {
+    if (times[i] <= ref) best = i; else break;
+  }
+  return best;
+}
+
+function setStatus(state, label) {
+  const el = $("status-live");
+  el.classList.toggle("offline", state === "offline");
+  el.textContent = label;
+}
+
+let baroHistory = []; /* {t, p} - to compute trend */
+
+async function update() {
+  const url = "https://api.open-meteo.com/v1/forecast"
+    + "?latitude=" + LAT + "&longitude=" + LON
+    + "&current=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,"
+    +   "wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code,precipitation,"
+    +   "cloud_cover,visibility,uv_index,dew_point_2m"
+    + "&hourly=temperature_2m,apparent_temperature,pressure_msl"
+    + "&minutely_15=wind_gusts_10m,wind_speed_10m"
+    + "&daily=sunrise,sunset,precipitation_sum"
+    + "&timezone=Europe%2FVienna"
+    + "&wind_speed_unit=kn"
+    + "&forecast_days=2&past_days=1";
+
+  let d;
+  try {
+    const r = await fetch(url, { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    d = await r.json();
+  } catch (e) {
+    console.error("Open-Meteo:", e);
+    setStatus("offline", "Offline · Wiederverbinden …");
+    return;
+  }
+  setStatus("live", "Live · 5-min Intervall");
+  render(d);
+}
+
+function render(d) {
+  const c = d.current;
+  const ref = c.time; /* "YYYY-MM-DDTHH:MM" in Europe/Vienna */
+
+  /* Header */
+  $("meta-updated").textContent = fmtDateTime(ref);
+
+  /* === WIND === */
+  const windKn = c.wind_speed_10m;
+  const gustKn = c.wind_gusts_10m;
+  const dir = c.wind_direction_10m;
+  const di = dirIdx(dir);
+
+  $("wind-speed").innerHTML = `${Math.round(windKn)}<span class="wind-unit">&nbsp;kn</span>`;
+  $("wind-dir-text").textContent = DIR_LONG[di];
+  $("wind-dir-deg").textContent = `${Math.round(dir)}° · aktualisiert ${fmtTime(ref)}`;
+  $("card-id-wind").textContent = `01 / ${DIR_SHORT[di]} · ${Math.round(dir)}°`;
+
+  /* compass arrow points TO the direction the wind blows (dir + 180) */
+  const arrowDeg = (dir + 180) % 360;
+  $("compass-arrow").setAttribute("transform", `translate(100 100) rotate(${arrowDeg})`);
+  $("compass-deg").textContent = `${Math.round(dir)}°`;
+
+  /* wind stats */
+  const m15 = d.minutely_15;
+  const idx15 = findIndex(m15.time, ref);
+  let sum = 0, cnt = 0;
+  for (let i = Math.max(0, idx15 - 3); i <= idx15; i++) {
+    const v = m15.wind_speed_10m[i];
+    if (typeof v === "number") { sum += v; cnt++; }
+  }
+  const mean1h = cnt ? sum / cnt : windKn;
+  $("stat-gust").innerHTML = `${Math.round(gustKn)}<span class="stat-unit">kn</span>`;
+  $("stat-mean").innerHTML = `${Math.round(mean1h)}<span class="stat-unit">kn</span>`;
+  $("stat-beaufort").innerHTML = `${beaufort(windKn)}<span class="stat-unit">bft</span>`;
+
+  /* gust bars — last 6h × 4 / h = 24 bars */
+  const startIdx = Math.max(0, idx15 - 23);
+  const gusts = [];
+  const speeds = [];
+  const times = [];
+  for (let i = startIdx; i <= idx15; i++) {
+    gusts.push(m15.wind_gusts_10m[i] || 0);
+    speeds.push(m15.wind_speed_10m[i] || 0);
+    times.push(m15.time[i]);
+  }
+  while (gusts.length < 24) {
+    gusts.unshift(0); speeds.unshift(0); times.unshift(times[0] || ref);
+  }
+
+  const VB_W = 600, VB_H = 90;
+  const xLeft = 24, xRight = 600;
+  const yTop = 8, yBot = 82;
+  const usableW = xRight - xLeft;
+  const barW = usableW / gusts.length * 0.7;
+  const slotW = usableW / gusts.length;
+  const gMax = Math.max(...gusts, ...speeds, 10);
+  /* round gMax up to nice 5 */
+  const yScale = Math.ceil(gMax / 5) * 5;
+
+  const yOf = v => yBot - (v / yScale) * (yBot - yTop);
+
+  let barsHtml = "";
+  for (let i = 0; i < gusts.length; i++) {
+    const x = xLeft + i * slotW + (slotW - barW) / 2;
+    const y = yOf(gusts[i]);
+    const h = yBot - y;
+    barsHtml += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0, h).toFixed(1)}"/>`;
+  }
+  $("gust-bars").innerHTML = barsHtml;
+
+  const meanPath = speeds.map((v, i) => {
+    const x = xLeft + i * slotW + slotW / 2;
+    return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${yOf(v).toFixed(1)}`;
+  }).join(" ");
+  $("gust-mean").setAttribute("d", meanPath);
+
+  /* y-axis labels (top, mid, bottom) */
+  $("gust-yaxis").innerHTML =
+    `<text x="0" y="${(yTop + 6).toFixed(1)}">${yScale}</text>` +
+    `<text x="0" y="${((yTop + yBot) / 2 + 3).toFixed(1)}">${Math.round(yScale / 2)}</text>` +
+    `<text x="0" y="${(yBot - 2).toFixed(1)}">0</text>`;
+
+  /* gust axis: 5 timestamps across the 6h window */
+  const axisHtml = [0, 1, 2, 3, 4].map(k => {
+    const i = Math.round(k * (times.length - 1) / 4);
+    return `<span>${fmtTime(times[i])}</span>`;
+  }).join("");
+  $("gust-axis").innerHTML = axisHtml;
+
+  /* === WETTER === */
+  const [stateShort, stateLong] = weatherDesc(c.weather_code);
+  $("wetter-state").textContent = stateShort;
+  const cloud = Math.round(c.cloud_cover);
+  const vis = c.visibility != null ? Math.round(c.visibility / 1000) : null;
+  const rainPart = c.precipitation > 0
+    ? `Niederschlag ${comma(c.precipitation, 1)} mm/h`
+    : "keine Niederschläge erwartet";
+  const visPart = vis != null ? ` · Sicht ${vis} km` : "";
+  $("wetter-detail").textContent = `${cloud} % Bewölkung${visPart} · ${rainPart}`;
+  $("card-id-wetter").textContent = `02 / ${stateLong}`;
+
+  $("tile-pressure").innerHTML = `${Math.round(c.pressure_msl)}<span class="u">hPa</span>`;
+  $("tile-humidity").innerHTML = `${Math.round(c.relative_humidity_2m)}<span class="u">%</span>`;
+  $("tile-uv").innerHTML = `${Math.round(c.uv_index || 0)}<span class="u">/ 11</span>`;
+  $("tile-sunrise").textContent = fmtTime(d.daily.sunrise[0]);
+  $("tile-sunset").textContent = fmtTime(d.daily.sunset[0]);
+  $("tile-precip").innerHTML = `${comma(d.daily.precipitation_sum[0] || 0, 1)}<span class="u">mm</span>`;
+
+  /* Barometric trend — compare current pressure to 3h ago */
+  const h = d.hourly;
+  const hIdx = findIndex(h.time, ref);
+  const pNow = c.pressure_msl;
+  const p3h = h.pressure_msl[Math.max(0, hIdx - 3)];
+  const dp = pNow - p3h;
+  $("baro-trend").textContent = Math.abs(dp) < 0.5 ? "stabil"
+    : dp > 0 ? `steigend +${comma(dp, 1)} hPa/3h`
+    : `fallend ${comma(dp, 1)} hPa/3h`;
+
+  /* === TEMPERATUR & GEFÜHLT === */
+  const tAir = c.temperature_2m;
+  const tFeel = c.apparent_temperature;
+  $("temp-air").innerHTML = `${Math.round(tAir)}<span class="deg">°C</span>`;
+  $("temp-feel").innerHTML = `${Math.round(tFeel)}<span class="deg">°C</span>`;
+
+  const tPrev = h.temperature_2m[Math.max(0, hIdx - 1)];
+  const trend = tAir - tPrev;
+  const arrow = trend > 0.1 ? "↑" : trend < -0.1 ? "↓" : "→";
+  const dew = c.dew_point_2m != null ? `Taupunkt ${Math.round(c.dew_point_2m)}°` : "Taupunkt —";
+  $("temp-air-meta").innerHTML =
+    `<span>Trend ${arrow} ${trend >= 0 ? "+" : ""}${comma(trend, 1)}°/h</span>` +
+    `<span>${dew}</span>`;
+
+  const delta = tFeel - tAir;
+  $("temp-feel-meta").innerHTML =
+    `<span>Δ ${delta >= 0 ? "+" : ""}${comma(delta, 1)}° vs. Luft</span>` +
+    `<span>Wind &amp; Feuchte</span>`;
+
+  /* Sparklines: today 00:00 → next midnight (25 hourly points) */
+  const dayStart = ref.slice(0, 10) + "T00:00";
+  const startH = findIndex(h.time, dayStart);
+  const airDay = h.temperature_2m.slice(startH, startH + 25);
+  const feelDay = h.apparent_temperature.slice(startH, startH + 25);
+
+  const all = [...airDay, ...feelDay].filter(v => typeof v === "number");
+  let tMin = Math.min(...all) - 1;
+  let tMax = Math.max(...all) + 1;
+  if (tMax - tMin < 4) { tMax = tMin + 4; }
+  const yTemp = v => 56 - ((v - tMin) / (tMax - tMin)) * 48;
+  const xTemp = i => (i / (airDay.length - 1)) * 320;
+  const pathOf = vals => vals.map((v, i) =>
+    `${i === 0 ? "M" : "L"}${xTemp(i).toFixed(1)},${yTemp(v).toFixed(1)}`
+  ).join(" ");
+
+  $("spark-air").setAttribute("d", pathOf(airDay));
+  $("spark-feel-bg").setAttribute("d", pathOf(airDay));
+  $("spark-feel").setAttribute("d", pathOf(feelDay));
+
+  const nowHour = parseInt(ref.split("T")[1].slice(0, 2), 10);
+  const nowMin = parseInt(ref.split("T")[1].slice(3, 5), 10);
+  const hourFrac = nowHour + nowMin / 60;
+  const dotX = (hourFrac / 24) * 320;
+  const airHere = airDay[Math.min(24, Math.round(hourFrac))];
+  const feelHere = feelDay[Math.min(24, Math.round(hourFrac))];
+  if (typeof airHere === "number") {
+    $("spark-air-dot").setAttribute("cx", dotX.toFixed(1));
+    $("spark-air-dot").setAttribute("cy", yTemp(airHere).toFixed(1));
+  }
+  if (typeof feelHere === "number") {
+    $("spark-feel-dot").setAttribute("cx", dotX.toFixed(1));
+    $("spark-feel-dot").setAttribute("cy", yTemp(feelHere).toFixed(1));
+  }
+
+  /* === WASSER === (Tageskonstante) */
+  $("temp-water").innerHTML = `${Math.round(WATER.tempC)}<span class="deg">°C</span>`;
+  const tr = WATER.trend7d;
+  $("temp-water-meta").innerHTML =
+    `<span>Sensor 50 cm</span>` +
+    `<span>Δ ${tr >= 0 ? "+" : ""}${comma(tr, 1)}° / 7 T</span>`;
+  $("card-id-water").textContent = `05 / oberfläche · ${WATER.stampDe}`;
+}
+
+/* === Stage scaling === */
 (function () {
   const inner = document.getElementById("stage-inner");
   const W = 1920, H = 1080;
@@ -773,6 +1015,14 @@ html, body {
   fit();
   window.addEventListener("resize", fit);
 })();
+
+/* === Kick off === */
+update();
+setInterval(update, REFRESH_MS);
+/* Refetch when tab becomes visible again */
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) update();
+});
 </script>
 
 </body>
