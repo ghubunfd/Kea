@@ -1,7 +1,7 @@
 {
   "tempC": 21.0,
-  "stampIso": "2026-06-02",
-  "stampDe": "2. Juni 2026",
+  "stampIso": "2026-06-03",
+  "stampDe": "3. Juni 2026",
   "trend7d": 0.0,
   "history": [
     {
@@ -46,6 +46,10 @@
     },
     {
       "date": "2026-06-02",
+      "tempC": 21.0
+    },
+    {
+      "date": "2026-06-03",
       "tempC": 21.0
     }
   ],
