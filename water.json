@@ -1,13 +1,9 @@
 {
   "tempC": 23.0,
-  "stampIso": "2026-09-24",
-  "stampDe": "24. September 2026",
+  "stampIso": "2026-09-25",
+  "stampDe": "25. September 2026",
   "trend7d": 5.0,
   "history": [
-    {
-      "date": "2026-09-11",
-      "tempC": 24.0
-    },
     {
       "date": "2026-09-12",
       "tempC": 24.0
@@ -58,6 +54,10 @@
     },
     {
       "date": "2026-09-24",
+      "tempC": 23.0
+    },
+    {
+      "date": "2026-09-25",
       "tempC": 23.0
     }
   ],
