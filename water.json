@@ -1,13 +1,9 @@
 {
-  "tempC": 23.0,
-  "stampIso": "2026-09-26",
-  "stampDe": "26. September 2026",
-  "trend7d": 5.0,
+  "tempC": 18.0,
+  "stampIso": "2026-09-27",
+  "stampDe": "27. September 2026",
+  "trend7d": 0.0,
   "history": [
-    {
-      "date": "2026-09-13",
-      "tempC": 24.0
-    },
     {
       "date": "2026-09-14",
       "tempC": 18.0
@@ -59,6 +55,10 @@
     {
       "date": "2026-09-26",
       "tempC": 23.0
+    },
+    {
+      "date": "2026-09-27",
+      "tempC": 18.0
     }
   ],
   "source": "https://www.wassertemperatur.org/neusiedler-see/"
