@@ -1,13 +1,9 @@
 {
   "tempC": 9.0,
-  "stampIso": "2026-10-30",
-  "stampDe": "30. Oktober 2026",
+  "stampIso": "2026-10-31",
+  "stampDe": "31. Oktober 2026",
   "trend7d": -6.0,
   "history": [
-    {
-      "date": "2026-10-17",
-      "tempC": 15.0
-    },
     {
       "date": "2026-10-18",
       "tempC": 15.0
@@ -58,6 +54,10 @@
     },
     {
       "date": "2026-10-30",
+      "tempC": 9.0
+    },
+    {
+      "date": "2026-10-31",
       "tempC": 9.0
     }
   ],
